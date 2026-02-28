@@ -1,951 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SafetyIQ - Intelligent Safety Analytics</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        :root {
-            --primary: #0A1628;
-            --secondary: #1E3A5F;
-            --accent: #00D4AA;
-            --accent-hover: #00F5C4;
-            --warning: #FF6B35;
-            --danger: #E63946;
-            --success: #2ECC71;
-            --surface: #0F1D32;
-            --surface-elevated: #162A46;
-            --text-primary: #FFFFFF;
-            --text-secondary: #8BA3C7;
-            --text-muted: #5A7299;
-            --border: #2A4066;
-            --exxon-red: #E21836;
-            --gradient-accent: linear-gradient(135deg, #00D4AA 0%, #00A3FF 100%);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 20px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Instrument Sans', -apple-system, sans-serif;
-            background: var(--primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow-x: hidden;
-        }
-
-        .bg-pattern {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                radial-gradient(circle at 20% 80%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(0, 163, 255, 0.06) 0%, transparent 50%);
-            pointer-events: none; z-index: 0;
-        }
-
-        .grid-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(42, 64, 102, 0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(42, 64, 102, 0.07) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none; z-index: 0;
-        }
-
-        /* WELL HEADER */
-        .well-header {
-            position: relative; z-index: 2;
-            background: linear-gradient(180deg, rgba(15, 29, 50, 0.95), rgba(10, 22, 40, 0.9));
-            border-bottom: 1px solid var(--border);
-            padding: 12px 20px;
-            backdrop-filter: blur(10px);
-        }
-        .well-header-inner {
-            max-width: 600px; margin: 0 auto;
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
-        }
-        .well-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-        .well-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
-        .well-location { font-size: 12px; color: var(--text-secondary); }
-        .exxon-logo-text { font-size: 18px; font-weight: 800; color: #E21836; letter-spacing: -0.5px; font-family: Arial Black, Arial, sans-serif; flex-shrink: 0; }
-        .siq-badge {
-            width: 30px; height: 30px;
-            background: var(--gradient-accent); border-radius: 6px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 10px; color: var(--primary);
-            flex-shrink: 0; letter-spacing: 0.3px;
-        }
-        .settings-gear {
-            width: 32px; height: 32px; border: none;
-            background: rgba(255,255,255,0.06); border-radius: 8px;
-            color: var(--text-secondary); cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; transition: all 0.2s;
-        }
-        .settings-gear:hover { background: rgba(255,255,255,0.1); color: var(--accent); }
-
-        /* LOGIN SCREEN */
-        .login-screen {
-            position: relative; z-index: 1;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: calc(100vh - 65px); min-height: calc(100dvh - 65px);
-            padding: 20px;
-        }
-        .login-screen.hidden { display: none; }
-
-        .login-card { width: 100%; max-width: 440px; text-align: center; }
-        .exxon-hero {
-            font-family: Arial Black, Arial, sans-serif;
-            font-size: 36px; font-weight: 900; color: #E21836;
-            letter-spacing: -0.5px; margin-bottom: 12px;
-        }
-        .login-title { font-size: 22px; font-weight: 600; margin-bottom: 4px; color: var(--text-secondary); }
-        .login-subtitle { color: var(--text-secondary); margin-bottom: 36px; font-size: 14px; }
-
-        /* 4 MAIN BUTTONS */
-        .main-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px; }
-        .action-btn {
-            position: relative;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 28px 16px 22px; cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: center;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            overflow: hidden;
-        }
-        .action-btn::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0;
-            height: 3px; border-radius: 3px 3px 0 0; opacity: 0; transition: opacity 0.25s;
-        }
-        .action-btn:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-        .action-btn:hover::before { opacity: 1; }
-        .action-btn:active { transform: translateY(0); }
-        .action-btn .icon-wrap {
-            width: 52px; height: 52px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .action-btn svg { width: 26px; height: 26px; }
-        .action-btn h4 { font-size: 15px; font-weight: 600; }
-        .action-btn p { font-size: 12px; color: var(--text-secondary); }
-
-        .action-btn.checkin { border-color: rgba(0, 212, 170, 0.25); }
-        .action-btn.checkin::before { background: var(--gradient-accent); }
-        .action-btn.checkin .icon-wrap { background: rgba(0, 212, 170, 0.12); color: var(--accent); }
-        .action-btn.checkin:hover { border-color: rgba(0, 212, 170, 0.5); background: rgba(0, 212, 170, 0.05); }
-
-        .action-btn.checkout { border-color: rgba(255, 107, 53, 0.25); }
-        .action-btn.checkout::before { background: linear-gradient(135deg, #FF6B35, #FF4444); }
-        .action-btn.checkout .icon-wrap { background: rgba(255, 107, 53, 0.12); color: var(--warning); }
-        .action-btn.checkout:hover { border-color: rgba(255, 107, 53, 0.5); background: rgba(255, 107, 53, 0.05); }
-
-        .action-btn.meeting { border-color: rgba(0, 163, 255, 0.25); }
-        .action-btn.meeting::before { background: linear-gradient(135deg, #0088FF, #00A3FF); }
-        .action-btn.meeting .icon-wrap { background: rgba(0, 163, 255, 0.12); color: #00A3FF; }
-        .action-btn.meeting:hover { border-color: rgba(0, 163, 255, 0.5); background: rgba(0, 163, 255, 0.05); }
-
-        .action-btn.newuser { border-color: rgba(156, 120, 255, 0.25); }
-        .action-btn.newuser::before { background: linear-gradient(135deg, #9C78FF, #B388FF); }
-        .action-btn.newuser .icon-wrap { background: rgba(156, 120, 255, 0.12); color: #B388FF; }
-        .action-btn.newuser:hover { border-color: rgba(156, 120, 255, 0.5); background: rgba(156, 120, 255, 0.05); }
-
-        .dev-bypass { margin-top: 8px; text-align: center; }
-        .dev-bypass button {
-            background: none; border: 1px dashed rgba(255,255,255,0.1);
-            color: var(--text-muted); font-size: 11px; padding: 6px 16px;
-            border-radius: var(--radius-sm); cursor: pointer;
-            font-family: 'JetBrains Mono', monospace; transition: all 0.2s;
-        }
-        .dev-bypass button:hover { border-color: var(--accent); color: var(--accent); }
-
-        .status-bar { margin-top: 20px; text-align: center; }
-        .status-count {
-            font-family: 'JetBrains Mono', monospace; font-size: 12px;
-            color: var(--text-muted);
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .status-dot {
-            width: 6px; height: 6px; background: var(--accent);
-            border-radius: 50%; animation: blink 2s infinite;
-        }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-        /* LEVEL UP OVERLAY */
-        .levelup-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9999; pointer-events: none; display: none;
-        }
-        .levelup-overlay.active { display: block; pointer-events: all; }
-        .levelup-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0); transition: background 0.4s ease;
-        }
-        .levelup-overlay.active .levelup-bg { background: rgba(0, 0, 0, 0.88); }
-        .levelup-content {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-            text-align: center; opacity: 0;
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .levelup-overlay.active .levelup-content {
-            transform: translate(-50%, -50%) scale(1); opacity: 1;
-        }
-        .levelup-overlay.float-up .levelup-content {
-            transform: translate(-50%, -150%) scale(0.8); opacity: 0;
-            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .levelup-icon {
-            width: 100px; height: 100px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 24px; position: relative;
-        }
-        .levelup-icon svg { width: 48px; height: 48px; }
-        .levelup-icon.ci { background: rgba(0, 212, 170, 0.2); color: var(--accent); box-shadow: 0 0 60px rgba(0, 212, 170, 0.4), 0 0 120px rgba(0, 212, 170, 0.15); }
-        .levelup-icon.co { background: rgba(255, 107, 53, 0.2); color: var(--warning); box-shadow: 0 0 60px rgba(255, 107, 53, 0.4), 0 0 120px rgba(255, 107, 53, 0.15); }
-
-        .levelup-ring {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100px; height: 100px;
-            border-radius: 50%; border: 2px solid currentColor; opacity: 0;
-        }
-        .levelup-overlay.active .levelup-ring { animation: ringPulse 1s ease-out forwards; }
-        .levelup-overlay.active .levelup-ring:nth-child(2) { animation-delay: 0.15s; }
-        .levelup-overlay.active .levelup-ring:nth-child(3) { animation-delay: 0.3s; }
-        @keyframes ringPulse {
-            0% { width: 100px; height: 100px; opacity: 0.8; }
-            100% { width: 240px; height: 240px; opacity: 0; }
-        }
-
-        .levelup-text { font-size: 36px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; }
-        .levelup-text.ci { color: var(--accent); text-shadow: 0 0 30px rgba(0, 212, 170, 0.6); }
-        .levelup-text.co { color: var(--warning); text-shadow: 0 0 30px rgba(255, 107, 53, 0.6); }
-        .levelup-name { font-size: 18px; color: var(--text-secondary); font-weight: 500; }
-        .levelup-time { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text-muted); margin-top: 8px; }
-        .particle { position: absolute; border-radius: 50%; pointer-events: none; }
-
-        /* MODAL */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); z-index: 1000;
-            display: none; align-items: center; justify-content: center;
-            padding: 20px; backdrop-filter: blur(4px);
-        }
-        .modal-overlay.active { display: flex; }
-        .modal {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); width: 100%; max-width: 480px;
-            max-height: 90vh; overflow-y: auto; padding: 28px;
-            animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .modal h3 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
-
-        /* FORM */
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
-        .form-input, .form-select {
-            width: 100%; padding: 12px 16px;
-            background: var(--surface-elevated); border: 1px solid var(--border);
-            border-radius: var(--radius-sm); color: var(--text-primary);
-            font-family: inherit; font-size: 14px; transition: border-color 0.2s;
-        }
-        .form-input:focus, .form-select:focus { outline: none; border-color: var(--accent); }
-        .form-input::placeholder { color: var(--text-muted); }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-        /* BUTTONS */
-        .btn {
-            padding: 12px 20px; border: none; border-radius: var(--radius-sm);
-            font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            transition: all 0.2s;
-        }
-        .btn-primary { background: var(--gradient-accent); color: var(--primary); }
-        .btn-primary:hover { box-shadow: 0 0 20px rgba(0, 212, 170, 0.3); }
-        .btn-secondary { background: var(--surface-elevated); color: var(--text-primary); border: 1px solid var(--border); }
-        .btn-block { width: 100%; }
-        .btn-danger { background: var(--danger); color: white; }
-
-        /* CAMERA */
-        .camera-container { width: 100%; aspect-ratio: 4/3; background: var(--primary); border-radius: var(--radius-md); overflow: hidden; position: relative; margin-bottom: 12px; }
-        .camera-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); }
-        .camera-placeholder svg { width: 48px; height: 48px; }
-        .camera-container video, .camera-container img { width: 100%; height: 100%; object-fit: cover; }
-        .camera-controls { position: absolute; bottom: 12px; left: 0; right: 0; display: flex; justify-content: center; }
-        .camera-btn { width: 56px; height: 56px; border-radius: 50%; border: 3px solid white; background: rgba(0, 212, 170, 0.8); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-        /* QR */
-        .qr-display { text-align: center; padding: 20px; }
-        .qr-code { display: inline-block; padding: 16px; background: white; border-radius: var(--radius-md); margin-bottom: 16px; }
-
-        /* TOAST */
-        .toast-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 8px; }
-        .toast { padding: 12px 24px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards; white-space: nowrap; }
-        .toast.success { background: var(--accent); color: var(--primary); }
-        .toast.error { background: var(--danger); color: white; }
-        @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
-
-        /* SETTINGS */
-        .settings-section { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-        .settings-section:last-child { border-bottom: none; }
-        .settings-section h4 { font-size: 14px; color: var(--accent); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* USER LIST */
-        .user-select-list { max-height: 280px; overflow-y: auto; }
-        .user-select-item {
-            display: flex; align-items: center; gap: 12px; padding: 12px;
-            border: 1px solid var(--border); border-radius: var(--radius-sm);
-            margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
-        }
-        .user-select-item:hover { border-color: var(--accent); background: rgba(0, 212, 170, 0.05); }
-
-        .signin-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .signin-option { background: var(--surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .signin-option:hover { border-color: var(--accent); }
-        .signin-option svg { width: 32px; height: 32px; color: var(--accent); margin-bottom: 8px; }
-        .signin-option h4 { font-size: 14px; margin-bottom: 4px; }
-        .signin-option p { font-size: 12px; color: var(--text-secondary); }
-
-        .divider { text-align: center; color: var(--text-muted); font-size: 12px; margin: 16px 0; display: flex; align-items: center; gap: 12px; }
-        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-        /* DASHBOARD */
-        .app-container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 20px; display: none; }
-        .app-container.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
-        .logo { display: flex; align-items: center; gap: 12px; }
-        .logo-icon { width: 44px; height: 44px; background: var(--gradient-accent); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: var(--primary); }
-        .logo-text h2 { font-size: 18px; font-weight: 700; }
-        .logo-text span { font-size: 12px; color: var(--text-secondary); }
-
-        .back-btn { background: none; border: 1px solid var(--border); color: var(--text-secondary); padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .back-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-        .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; }
-        .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-        .card-header h3 { font-size: 16px; font-weight: 700; }
-        .card-header svg { width: 20px; height: 20px; color: var(--accent); }
-
-        .attendees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-        .attendee-card { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--surface-elevated); border-radius: var(--radius-sm); }
-        .attendee-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; overflow: hidden; }
-        .attendee-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .attendee-name { font-size: 13px; font-weight: 600; }
-        .attendee-role { font-size: 11px; color: var(--text-secondary); }
-        .attendee-time { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
-        .attendee-status { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-top: 2px; display: inline-block; }
-        .attendee-status.in { background: rgba(0, 212, 170, 0.15); color: var(--accent); }
-        .attendee-add { border: 1px dashed var(--border); background: transparent; cursor: pointer; justify-content: center; gap: 6px; color: var(--text-muted); font-size: 13px; transition: all 0.2s; }
-        .attendee-add:hover { border-color: var(--accent); color: var(--accent); }
-
-        .meeting-setup { display: grid; gap: 16px; }
-        .start-meeting-btn { width: 100%; padding: 16px; background: var(--gradient-accent); border: none; border-radius: var(--radius-md); color: var(--primary); font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
-        .start-meeting-btn:hover { box-shadow: 0 0 30px rgba(0, 212, 170, 0.3); }
-        .start-meeting-btn svg { width: 24px; height: 24px; }
-
-        @media (max-width: 480px) {
-            .well-header { padding: 10px 16px; }
-            .well-name { font-size: 13px; }
-            .login-screen { padding: 16px; }
-            .main-actions { gap: 10px; }
-            .action-btn { padding: 22px 12px 18px; }
-            .action-btn .icon-wrap { width: 44px; height: 44px; }
-            .action-btn svg { width: 22px; height: 22px; }
-            .levelup-text { font-size: 28px; letter-spacing: 3px; }
-            .modal { padding: 20px; }
-        }
-        @media (min-width: 768px) { .dashboard-grid { grid-template-columns: 1fr 1fr; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SafetyIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--primary:#0A1628;--secondary:#1E3A5F;--accent:#00D4AA;--accent2:#00A3FF;--warning:#FF6B35;--danger:#E63946;--surface:#0F1D32;--surface2:#162A46;--text1:#FFF;--text2:#8BA3C7;--text3:#5A7299;--border:#2A4066;--red:#E21836;--grad:linear-gradient(135deg,#00D4AA,#00A3FF);--r-sm:8px;--r-md:12px;--r-lg:20px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Instrument Sans',-apple-system,sans-serif;background:var(--primary);color:var(--text1);height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+.bg{position:fixed;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(0,212,170,.06) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(0,163,255,.04) 0%,transparent 50%);pointer-events:none;z-index:0}
+.grid-bg{position:fixed;inset:0;background-image:linear-gradient(rgba(42,64,102,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(42,64,102,.05) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+.topbar{position:relative;z-index:50;background:linear-gradient(180deg,rgba(15,29,50,.97),rgba(10,22,40,.95));border-bottom:1px solid var(--border);padding:12px 20px;backdrop-filter:blur(12px);flex-shrink:0}
+.topbar-inner{max-width:600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.siq-mark{width:32px;height:32px;background:var(--grad);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--primary);flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:700}.topbar-sub{font-size:11px;color:var(--text2)}
+.gear-btn{width:32px;height:32px;border:none;background:rgba(255,255,255,.06);border-radius:8px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.gear-btn:hover{background:rgba(255,255,255,.1);color:var(--accent)}
+.main{flex:1;overflow:hidden;position:relative;z-index:1}
+.page{position:absolute;inset:0;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch}
+.page.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.page-pad{padding:20px;max-width:600px;margin:0 auto;padding-bottom:100px}
+.tabbar{position:relative;z-index:50;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;display:none}
+.tabbar.show{display:block}
+.tabbar-inner{max-width:600px;margin:0 auto;display:flex}
+.tab{flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--text3);font-family:inherit;font-size:10px;font-weight:600;transition:color .2s;-webkit-tap-highlight-color:transparent}
+.tab svg{width:22px;height:22px}.tab.active{color:var(--accent)}
+.home-center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:24px 20px}
+.home-logo{font-family:Arial Black,Arial,sans-serif;font-size:32px;font-weight:900;color:var(--red);margin-bottom:8px}
+.home-app{font-size:20px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.home-tag{font-size:13px;color:var(--text3);margin-bottom:40px}
+.home-actions{width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px}
+.home-btn{display:flex;align-items:center;gap:16px;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.home-btn::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0;opacity:0;transition:opacity .25s}
+.home-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.home-btn:hover::after{opacity:1}.home-btn:active{transform:translateY(0)}
+.hb-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hb-icon svg{width:26px;height:26px}
+.hb-text h4{font-size:16px;font-weight:700;margin-bottom:2px}
+.hb-text p{font-size:12px;color:var(--text2)}
+.hb-arrow{margin-left:auto;color:var(--text3)}.hb-arrow svg{width:20px;height:20px}
+.home-btn.ci{border-color:rgba(0,212,170,.25)}.home-btn.ci::after{background:var(--grad)}.home-btn.ci .hb-icon{background:rgba(0,212,170,.1);color:var(--accent)}.home-btn.ci:hover{border-color:rgba(0,212,170,.5);background:rgba(0,212,170,.03)}
+.home-btn.co{border-color:rgba(255,107,53,.25)}.home-btn.co::after{background:linear-gradient(135deg,#FF6B35,#FF4444)}.home-btn.co .hb-icon{background:rgba(255,107,53,.1);color:var(--warning)}.home-btn.co:hover{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.03)}
+.home-status{margin-top:28px;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3)}
+.pulse-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.dev-link{margin-top:12px}.dev-link button{background:none;border:1px dashed rgba(255,255,255,.08);color:var(--text3);font-size:10px;padding:5px 14px;border-radius:6px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s}.dev-link button:hover{border-color:var(--accent);color:var(--accent)}
+.section-title{font-size:18px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}.section-title svg{width:22px;height:22px;color:var(--accent)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;margin-bottom:16px}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}.card-head h3{font-size:15px;font-weight:700}.card-head svg{width:18px;height:18px;color:var(--accent)}
+.form-group{margin-bottom:14px}.form-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px}
+.form-input,.form-select{width:100%;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text1);font-family:inherit;font-size:14px;transition:border-color .2s}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--accent)}.form-input::placeholder{color:var(--text3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{padding:12px 20px;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.btn-primary{background:var(--grad);color:var(--primary)}.btn-primary:hover{box-shadow:0 0 20px rgba(0,212,170,.3)}
+.btn-secondary{background:var(--surface2);color:var(--text1);border:1px solid var(--border)}
+.btn-block{width:100%}.btn-danger{background:var(--danger);color:white}
+.btn-lg{padding:16px 24px;font-size:16px;font-weight:700;border-radius:var(--r-md)}.btn-lg svg{width:22px;height:22px}
+.checkedin-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.2);border-radius:var(--r-md);margin-bottom:16px;font-size:13px;color:var(--accent)}
+.ci-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text3)}.empty-state svg{width:48px;height:48px;margin-bottom:12px;opacity:.4}.empty-state p{font-size:13px}
+.divider{text-align:center;color:var(--text3);font-size:11px;margin:14px 0;display:flex;align-items:center;gap:10px}.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.profile-hero{text-align:center;padding:24px 0 20px}
+.profile-avatar{width:90px;height:90px;border-radius:50%;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 14px;overflow:hidden;border:3px solid var(--border)}.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-name{font-size:20px;font-weight:700;margin-bottom:2px}.profile-role{font-size:13px;color:var(--text2)}.profile-company{font-size:13px;color:var(--accent);font-weight:600;margin-top:2px}
+.cert-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:var(--r-sm);margin-bottom:8px}
+.cert-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.cert-icon.valid{background:rgba(0,212,170,.12);color:var(--accent)}.cert-icon.expired{background:rgba(230,57,70,.12);color:var(--danger)}.cert-icon.expiring{background:rgba(255,107,53,.12);color:var(--warning)}
+.cert-name{font-size:13px;font-weight:600}.cert-exp{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.cert-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px}
+.cert-badge.valid{background:rgba(0,212,170,.15);color:var(--accent)}.cert-badge.expired{background:rgba(230,57,70,.15);color:var(--danger)}.cert-badge.expiring{background:rgba(255,107,53,.15);color:var(--warning)}
+.jsa-list{display:flex;flex-direction:column;gap:10px}
+.jsa-item{display:flex;align-items:center;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);cursor:pointer;transition:all .2s}.jsa-item:hover{border-color:var(--accent);background:rgba(0,212,170,.03)}
+.jsa-date{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);background:rgba(0,212,170,.1);padding:6px 10px;border-radius:6px;flex-shrink:0;text-align:center;line-height:1.4}.jsa-day{font-size:18px;font-weight:700;display:block}
+.jsa-scope{font-size:14px;font-weight:600;margin-bottom:2px}.jsa-meta{font-size:11px;color:var(--text3)}
+.jsa-pct{font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px}.jsa-pct.good{background:rgba(0,212,170,.15);color:var(--accent)}.jsa-pct.ok{background:rgba(255,107,53,.15);color:var(--warning)}.jsa-pct.bad{background:rgba(230,57,70,.15);color:var(--danger)}
+.detail-back{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:16px;background:none;border:none;font-family:inherit;padding:0}.detail-back:hover{color:var(--accent)}.detail-back svg{width:16px;height:16px}
+.ai-result{background:var(--surface2);border-radius:var(--r-md);padding:20px;line-height:1.7;font-size:14px;color:var(--text2)}
+.hazard-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px;font-size:13px}
+.hz-dot{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.hz-dot.covered{background:rgba(0,212,170,.2);color:var(--accent)}.hz-dot.missed{background:rgba(230,57,70,.2);color:var(--danger)}.hz-dot.pending{background:rgba(90,114,153,.2);color:var(--text3)}
+.rec-indicator{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;background:rgba(230,57,70,.12);border:1px solid rgba(230,57,70,.3);border-radius:var(--r-sm);font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600}
+.rec-dot{width:10px;height:10px;background:var(--danger);border-radius:50%;animation:recBlink 1s infinite}
+.rec-indicator.paused{background:rgba(255,107,53,.12);border-color:rgba(255,107,53,.3)}.rec-indicator.paused .rec-dot{background:var(--warning);animation:none}
+@keyframes recBlink{0%,100%{opacity:1}50%{opacity:.2}}
+.vid-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px}
+.vid-card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.vid-card-head h3{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}.vid-card-head h3 svg{width:16px;height:16px;color:var(--accent)}
+.vid-body{aspect-ratio:16/9;background:#000;position:relative;display:flex;align-items:center;justify-content:center}
+.vid-body video{width:100%;height:100%;object-fit:cover}
+.vid-body .ph{color:var(--text3);text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}.vid-body .ph svg{width:48px;height:48px}
+.ai-badge-ov{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.7);border:1px solid rgba(0,212,170,.4);border-radius:6px;padding:5px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);display:flex;align-items:center;gap:5px;backdrop-filter:blur(6px);z-index:2}
+.ai-badge-ov .dot{width:5px;height:5px;background:var(--accent);border-radius:50%;animation:pulse 1.5s infinite}
+.waveform{height:40px;background:var(--surface2);border-radius:6px;margin:10px 16px;display:flex;align-items:center;gap:2px;padding:0 10px;overflow:hidden}
+.wb{width:3px;background:var(--accent);border-radius:2px;min-height:3px;transition:height .1s}
+.rec-controls{display:flex;gap:10px;padding:14px 16px;border-top:1px solid var(--border);flex-wrap:wrap;justify-content:center}
+.rc-btn{padding:9px 16px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface2);color:var(--text1);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s}.rc-btn:hover{border-color:var(--accent)}.rc-btn svg{width:16px;height:16px}
+.rc-btn.stop{background:var(--danger);border-color:var(--danger);color:white}.rc-btn.stop:hover{background:#c9303c}
+.transcript-body{max-height:260px;overflow-y:auto;padding:14px 16px}
+.t-entry{padding:6px 0;border-bottom:1px solid rgba(42,64,102,.25)}.t-entry:last-child{border-bottom:none}
+.t-speaker{font-size:11px;font-weight:600;color:var(--accent)}.t-text{font-size:13px;color:var(--text2);line-height:1.5}
+.t-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.ai-tab-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:14px}
+.ai-tab{padding:9px 14px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}.ai-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.ai-tc{display:none}.ai-tc.active{display:block}
+.hz-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:6px;margin-bottom:5px;font-size:12px}
+.alert-feed{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto}
+.alert-item{display:flex;gap:8px;padding:8px 10px;border-radius:6px;font-size:11px}
+.alert-item.danger{background:rgba(230,57,70,.08);border-left:3px solid var(--danger)}
+.alert-item.warning{background:rgba(255,107,53,.08);border-left:3px solid var(--warning)}
+.alert-item.info{background:rgba(0,163,255,.08);border-left:3px solid var(--accent2)}
+.levelup{position:fixed;inset:0;z-index:9999;pointer-events:none;display:none}.levelup.active{display:block;pointer-events:all}
+.levelup-bg{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .4s}.levelup.active .levelup-bg{background:rgba(0,0,0,.88)}
+.lu-box{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);text-align:center;opacity:0;transition:all .5s cubic-bezier(.16,1,.3,1)}.levelup.active .lu-box{transform:translate(-50%,-50%) scale(1);opacity:1}.levelup.out .lu-box{transform:translate(-50%,-150%) scale(.8);opacity:0;transition:all 1.2s cubic-bezier(.4,0,.2,1)}
+.lu-icon{width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;position:relative}.lu-icon svg{width:44px;height:44px}
+.lu-icon.ci{background:rgba(0,212,170,.2);color:var(--accent);box-shadow:0 0 50px rgba(0,212,170,.4)}
+.lu-icon.co{background:rgba(255,107,53,.2);color:var(--warning);box-shadow:0 0 50px rgba(255,107,53,.4)}
+.lu-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;border:2px solid currentColor;opacity:0}
+.levelup.active .lu-ring{animation:ringP 1s ease-out forwards}.levelup.active .lu-ring:nth-child(2){animation-delay:.15s}.levelup.active .lu-ring:nth-child(3){animation-delay:.3s}
+@keyframes ringP{0%{width:90px;height:90px;opacity:.8}100%{width:220px;height:220px;opacity:0}}
+.lu-text{font-size:32px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px}
+.lu-text.ci{color:var(--accent);text-shadow:0 0 30px rgba(0,212,170,.6)}.lu-text.co{color:var(--warning);text-shadow:0 0 30px rgba(255,107,53,.6)}
+.lu-name{font-size:16px;color:var(--text2);font-weight:500}.lu-time{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text3);margin-top:6px}
+.particle{position:absolute;border-radius:50%;pointer-events:none}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}.modal-bg.active{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);width:100%;max-width:440px;max-height:85vh;overflow-y:auto;padding:24px;animation:modalUp .3s cubic-bezier(.16,1,.3,1)}
+@keyframes modalUp{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:16px}
+.settings-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}.settings-section:last-child{border-bottom:none}
+.settings-section h4{font-size:13px;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.cam-box{width:100%;aspect-ratio:4/3;background:var(--primary);border-radius:var(--r-md);overflow:hidden;position:relative;margin-bottom:10px}
+.cam-ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text3);font-size:12px}.cam-ph svg{width:40px;height:40px}
+.cam-box video,.cam-box img{width:100%;height:100%;object-fit:cover}
+.cam-ctrls{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center}
+.cam-snap{width:50px;height:50px;border-radius:50%;border:3px solid white;background:rgba(0,212,170,.8);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.toast-box{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{padding:10px 22px;border-radius:var(--r-sm);font-size:13px;font-weight:500;animation:tIn .3s,tOut .3s 2.7s forwards;white-space:nowrap}
+.toast.success{background:var(--accent);color:var(--primary)}.toast.error{background:var(--danger);color:white}.toast.info{background:var(--accent2);color:white}
+@keyframes tIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tOut{from{opacity:1}to{opacity:0;transform:translateY(-8px)}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media(max-width:380px){.home-logo{font-size:26px}.home-app{font-size:17px}.lu-text{font-size:26px}}
+</style>
 </head>
 <body>
-    <div class="bg-pattern"></div>
-    <div class="grid-overlay"></div>
-
-    <!-- WELL HEADER -->
-    <div class="well-header">
-        <div class="well-header-inner">
-            <div class="well-info">
-                <div class="well-name" id="wellNameDisplay">Justin SWD #1</div>
-                <div class="well-location" id="wellLocationDisplay">McKenzie County, ND</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-                <button class="settings-gear" onclick="openSettings()" title="Settings">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </button>
-                <div class="siq-badge">SIQ</div>
-            </div>
-        </div>
+<div class="bg"></div><div class="grid-bg"></div>
+<div class="topbar"><div class="topbar-inner"><div class="topbar-left"><div class="siq-mark">SIQ</div><div><div class="topbar-title" id="topTitle">SafetyIQ</div><div class="topbar-sub" id="topSub">Not checked in</div></div></div><div><button class="gear-btn" onclick="openSettings()"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button></div></div></div>
+<div class="main">
+  <div class="page active" id="pageHome"><div class="home-center">
+    <div class="home-logo">ExxonMobil</div><div class="home-app">SafetyIQ</div><div class="home-tag">Intelligent Safety Analytics</div>
+    <div class="home-actions">
+      <div class="home-btn ci" onclick="doCheckIn()"><div class="hb-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg></div><div class="hb-text"><h4>Check In</h4><p>Scan wellsite QR to arrive</p></div><div class="hb-arrow"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div></div>
+      <div class="home-btn co" onclick="doManualCheckOut()"><div class="hb-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></div><div class="hb-text"><h4>Check Out</h4><p>Leaving the location</p></div><div class="hb-arrow"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div></div>
     </div>
+    <div class="home-status"><span class="pulse-dot"></span><span id="homeCount">0</span> on location</div>
+    <div class="dev-link"><button onclick="devBypass()">⚡ dev bypass</button></div>
+  </div></div>
+  <div class="page" id="pageMeeting"><div class="page-pad" id="meetingContent"></div></div>
+  <div class="page" id="pageProfile"><div class="page-pad" id="profileContent"></div></div>
+  <div class="page" id="pageAnalytics"><div class="page-pad" id="analyticsContent"></div></div>
+  <div class="page" id="pageRecorder"><div class="page-pad" id="recorderContent"></div></div>
+  <div class="page" id="pageJSADetail"><div class="page-pad" id="jsaDetailContent"></div></div>
+</div>
+<div class="tabbar" id="tabbar"><div class="tabbar-inner">
+  <button class="tab active" onclick="switchPage('pageMeeting')" id="tabMeeting"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>Meeting</button>
+  <button class="tab" onclick="switchPage('pageProfile')" id="tabProfile"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Profile</button>
+  <button class="tab" onclick="switchPage('pageAnalytics')" id="tabAnalytics"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Analytics</button>
+</div></div>
+<div class="levelup" id="levelup"><div class="levelup-bg"></div><div class="lu-box"><div class="lu-icon" id="luIcon"><div class="lu-ring"></div><div class="lu-ring"></div><div class="lu-ring"></div><svg id="luSvg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg></div><div class="lu-text" id="luText"></div><div class="lu-name" id="luName"></div><div class="lu-time" id="luTime"></div></div></div>
+<div class="modal-bg" id="modalBg"><div class="modal"><div id="modalBody"></div></div></div>
+<div class="toast-box" id="toastBox"></div>
+<script>
+const S={profile:JSON.parse(localStorage.getItem('siq_profile')||'null'),checkedIn:JSON.parse(localStorage.getItem('siq_checkedin')||'null'),settings:JSON.parse(localStorage.getItem('siq_settings')||'{}'),meetings:JSON.parse(localStorage.getItem('siq_meetings')||'[]'),certs:JSON.parse(localStorage.getItem('siq_certs')||'[]')};
+function save(k){localStorage.setItem('siq_'+k,JSON.stringify(S[k]))}
+let profileStream=null,capturedPhoto=null,geoWatchId=null;
+const rec={active:false,paused:false,startTime:null,timerInt:null,stream:null,mediaRec:null,chunks:[],audioCtx:null,analyser:null,speechRec:null,transcript:[],hazards:[],alerts:[],snapshot:null,info:{},autoInt:null};
 
-    <!-- LOGIN SCREEN -->
-    <div class="login-screen" id="loginScreen">
-        <div class="login-card">
-            <div class="exxon-hero">ExxonMobil</div>
-            <h1 class="login-title">SafetyIQ</h1>
-            <p class="login-subtitle">Intelligent Safety Analytics Platform</p>
-            <div class="main-actions">
-                <div class="action-btn checkin" onclick="showCheckIn()">
-                    <div class="icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg></div>
-                    <h4>Check In</h4><p>Arriving on location</p>
-                </div>
-                <div class="action-btn checkout" onclick="showCheckOut()">
-                    <div class="icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></div>
-                    <h4>Check Out</h4><p>Leaving location</p>
-                </div>
-                <div class="action-btn meeting" onclick="holdMeeting()">
-                    <div class="icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>
-                    <h4>Hold Meeting</h4><p>Safety meeting</p>
-                </div>
-                <div class="action-btn newuser" onclick="showVisitorSignIn()">
-                    <div class="icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1zm13-8h4m-2-2v4"/></svg></div>
-                    <h4>Visitor</h4><p>Guest check in</p>
-                </div>
-            </div>
-            <div class="status-bar"><div class="status-count"><span class="status-dot"></span><span id="checkedInCount">0</span> on location</div></div>
-            <div class="dev-bypass"><button onclick="devBypass()">⚡ dev bypass</button></div>
-        </div>
-    </div>
+function init(){if(S.checkedIn){enterCheckedIn()}else{showPage('pageHome');updHome()}}
+function updHome(){document.getElementById('homeCount').textContent=S.checkedIn?'1':'0'}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function switchPage(id){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));const m={pageMeeting:'tabMeeting',pageProfile:'tabProfile',pageAnalytics:'tabAnalytics'};if(m[id])document.getElementById(m[id]).classList.add('active');if(id==='pageMeeting')renderMeeting();else if(id==='pageProfile')renderProfile();else if(id==='pageAnalytics')renderAnalytics();showPage(id)}
+function enterCheckedIn(){document.getElementById('tabbar').classList.add('show');document.getElementById('topSub').textContent=S.checkedIn.siteName;switchPage('pageMeeting');startGeoFence()}
+function exitCheckedIn(){document.getElementById('tabbar').classList.remove('show');document.getElementById('topSub').textContent='Not checked in';stopGeoFence();showPage('pageHome');updHome()}
 
-    <!-- MAIN APP DASHBOARD -->
-    <div class="app-container" id="mainApp">
-        <header class="header">
-            <div class="logo"><div class="logo-icon">SIQ</div><div class="logo-text"><h2>SafetyIQ</h2><span>Dashboard</span></div></div>
-            <button class="back-btn" onclick="backToLogin()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg> Back
-            </button>
-        </header>
-        <div class="dashboard-grid">
-            <div class="card">
-                <div class="card-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <h3>On Location (<span id="attendeeCount">0</span>)</h3>
-                </div>
-                <div class="attendees-grid" id="attendeesGrid">
-                    <div class="attendee-card attendee-add" onclick="openSignInModal()"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Add Attendee</div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                    <h3>Meeting Setup</h3>
-                </div>
-                <div class="meeting-setup">
-                    <div class="form-row">
-                        <div class="form-group"><label class="form-label">Well / Site</label><input type="text" class="form-input" id="wellInput" placeholder="e.g. Justin SWD #1"></div>
-                        <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="locationInput" placeholder="e.g. McKenzie County, ND"></div>
-                    </div>
-                    <div class="form-group"><label class="form-label">Job Scope</label>
-                        <select class="form-select" id="jobScopeSelect">
-                            <option value="">Select scope...</option>
-                            <option value="Pre-Job Safety Meeting">Pre-Job Safety Meeting</option>
-                            <option value="Daily Safety Meeting">Daily Safety Meeting</option>
-                            <option value="Tailgate Meeting">Tailgate Meeting</option>
-                            <option value="JSA Review">JSA Review</option>
-                            <option value="Emergency Drill">Emergency Drill</option>
-                            <option value="Workover Operations">Workover Operations</option>
-                            <option value="Plug & Abandon">Plug & Abandon</option>
-                            <option value="Well Intervention">Well Intervention</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="meetingNotes" rows="3" placeholder="Additional notes..." style="resize:vertical;"></textarea></div>
-                    <button class="start-meeting-btn" onclick="startMeeting()">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Start Recording Meeting
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+// CHECK IN
+function doCheckIn(){
+  if(!S.profile){showToast('Set up your profile in Settings first','error');return}
+  document.getElementById('modalBody').innerHTML='<h3>Check In</h3><p style="color:var(--text2);font-size:13px;margin-bottom:16px">Scan wellsite QR or enter manually</p><div class="cam-box"><div class="cam-ph" id="qrPh"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg><span>Point at QR code</span></div><video id="qrVid" autoplay playsinline style="display:none"></video></div><button class="btn btn-secondary btn-block" onclick="startQR()" style="margin-bottom:14px">📷 Start Camera</button><div class="divider">or enter manually</div><div class="form-group"><label class="form-label">Well / Site Name</label><input type="text" class="form-input" id="ciSite" placeholder="e.g. Justin SWD #1" value="'+(S.settings.wellName||'')+'"></div><p style="font-size:11px;color:var(--text3);margin-bottom:14px">📍 GPS captured as site center (2,000 ft geo-fence)</p><div style="display:flex;gap:10px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" style="flex:1" onclick="confirmCI()">Check In</button></div>';
+  openModal()
+}
+async function startQR(){try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});document.getElementById('qrVid').srcObject=s;document.getElementById('qrVid').style.display='block';document.getElementById('qrPh').style.display='none';setTimeout(()=>{document.getElementById('ciSite').value=S.settings.wellName||'Justin SWD #1';showToast('QR Detected!','info');s.getTracks().forEach(t=>t.stop())},3000)}catch(e){showToast('Camera unavailable','error')}}
+function confirmCI(){const name=document.getElementById('ciSite').value.trim();if(!name){showToast('Enter site name','error');return}if(navigator.geolocation){navigator.geolocation.getCurrentPosition(p=>{S.checkedIn={siteName:name,coords:{lat:p.coords.latitude,lng:p.coords.longitude},time:new Date().toISOString()};save('checkedin');closeModal();showLevelUp('checkin',S.profile.name);setTimeout(enterCheckedIn,2200)},()=>{S.checkedIn={siteName:name,coords:null,time:new Date().toISOString()};save('checkedin');closeModal();showLevelUp('checkin',S.profile.name);setTimeout(enterCheckedIn,2200);showToast('GPS unavailable','info')},{enableHighAccuracy:true,timeout:10000})}else{S.checkedIn={siteName:name,coords:null,time:new Date().toISOString()};save('checkedin');closeModal();showLevelUp('checkin',S.profile.name);setTimeout(enterCheckedIn,2200)}}
+function doManualCheckOut(){if(!S.checkedIn){showToast('Not checked in','error');return}performCO()}
+function performCO(){const n=S.profile?S.profile.name:'User';S.checkedIn=null;save('checkedin');showLevelUp('checkout',n);setTimeout(exitCheckedIn,2200)}
 
-    <!-- LEVEL UP OVERLAY -->
-    <div class="levelup-overlay" id="levelupOverlay">
-        <div class="levelup-bg"></div>
-        <div class="levelup-content">
-            <div class="levelup-icon" id="levelupIcon">
-                <div class="levelup-ring"></div><div class="levelup-ring"></div><div class="levelup-ring"></div>
-                <svg id="levelupSvg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg>
-            </div>
-            <div class="levelup-text" id="levelupText"></div>
-            <div class="levelup-name" id="levelupName"></div>
-            <div class="levelup-time" id="levelupTime"></div>
-        </div>
-    </div>
+// GEO FENCE
+function startGeoFence(){if(!S.checkedIn||!S.checkedIn.coords||!navigator.geolocation)return;geoWatchId=navigator.geolocation.watchPosition(p=>{const d=haversine(S.checkedIn.coords.lat,S.checkedIn.coords.lng,p.coords.latitude,p.coords.longitude)*3280.84;if(d>2000)performCO()},()=>{},{enableHighAccuracy:true,maximumAge:10000,timeout:15000})}
+function stopGeoFence(){if(geoWatchId!==null){navigator.geolocation.clearWatch(geoWatchId);geoWatchId=null}}
+function haversine(a,b,c,d){const R=6371000,dLat=(c-a)*Math.PI/180,dLon=(d-b)*Math.PI/180,x=Math.sin(dLat/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 
-    <!-- MODAL -->
-    <div class="modal-overlay" id="modalOverlay"><div class="modal"><div id="modalBody"></div></div></div>
+// LEVEL UP
+function showLevelUp(type,name){const o=document.getElementById('levelup'),icon=document.getElementById('luIcon'),svg=document.getElementById('luSvg'),text=document.getElementById('luText'),t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});if(type==='checkin'){icon.className='lu-icon ci';svg.innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';text.className='lu-text ci';text.textContent='CHECKED IN';spawnP('#00D4AA')}else{icon.className='lu-icon co';svg.innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7"/>';text.className='lu-text co';text.textContent='CHECKED OUT';spawnP('#FF6B35')}document.getElementById('luName').textContent=name;document.getElementById('luTime').textContent=t;o.classList.remove('out');o.classList.add('active');setTimeout(()=>o.classList.add('out'),1800);setTimeout(()=>o.classList.remove('active','out'),3200)}
+function spawnP(c){const o=document.getElementById('levelup');for(let i=0;i<20;i++){const p=document.createElement('div');p.className='particle';const a=(Math.PI*2/20)*i+(Math.random()-.5)*.5,d=70+Math.random()*160,s=3+Math.random()*4;p.style.cssText='width:'+s+'px;height:'+s+'px;background:'+c+';left:50%;top:50%;transform:translate(-50%,-50%);opacity:1;transition:all '+(0.5+Math.random()*0.5)+'s cubic-bezier(.16,1,.3,1);box-shadow:0 0 '+(s*2)+'px '+c;o.appendChild(p);requestAnimationFrame(()=>{p.style.transform='translate(calc(-50% + '+Math.cos(a)*d+'px),calc(-50% + '+Math.sin(a)*d+'px))';p.style.opacity='0'});setTimeout(()=>p.remove(),1500)}}
+// MEETING PAGE
+function renderMeeting(){const el=document.getElementById('meetingContent'),ci=S.checkedIn;if(rec.active){showPage('pageRecorder');return}
+el.innerHTML='<div class="checkedin-bar"><div class="ci-dot"></div>Checked in at <strong style="margin-left:4px">'+(ci?ci.siteName:'-')+'</strong></div><div class="section-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>Hold Safety Meeting</div><div class="card"><div class="form-group"><label class="form-label">Job Scope</label><select class="form-select" id="mScope"><option value="">Select scope...</option><option>Pre-Job Safety Meeting</option><option>Daily Safety Meeting</option><option>Tailgate Meeting</option><option>JSA Review</option><option>Emergency Drill</option><option>Workover Operations</option><option>Plug &amp; Abandon</option><option>Well Intervention</option></select></div><div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="mNotes" rows="3" placeholder="Additional notes..." style="resize:vertical"></textarea></div><button class="btn btn-primary btn-lg btn-block" onclick="startRecording()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Start Recording</button></div><button class="btn btn-secondary btn-block" onclick="doManualCheckOut()" style="margin-top:12px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>Check Out</button>'}
 
-    <!-- TOAST -->
-    <div class="toast-container" id="toastContainer"></div>
+// PROFILE PAGE
+function renderProfile(){const el=document.getElementById('profileContent'),p=S.profile;
+if(!p){el.innerHTML='<div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><p>No profile yet.</p><button class="btn btn-primary" onclick="openProfileSetup()" style="margin-top:16px">Create Profile</button></div>';return}
+let certHtml='';
+S.certs.forEach(function(c){const exp=new Date(c.expiry),now=new Date(),valid=exp>now,days=Math.ceil((exp-now)/86400000),cls=valid?(days<30?'expiring':'valid'):'expired',label=cls==='valid'?'VALID':cls==='expired'?'EXPIRED':'EXPIRING',icon=cls==='valid'?'✓':cls==='expired'?'✗':'⚠';certHtml+='<div class="cert-item"><div class="cert-icon '+cls+'">'+icon+'</div><div class="cert-info" style="flex:1"><div class="cert-name">'+c.name+'</div><div class="cert-exp">Exp: '+exp.toLocaleDateString()+'</div></div><span class="cert-badge '+cls+'">'+label+'</span></div>'});
+el.innerHTML='<div class="profile-hero"><div class="profile-avatar">'+(p.photo?'<img src="'+p.photo+'">':p.name.charAt(0))+'</div><div class="profile-name">'+p.name+'</div><div class="profile-role">'+p.position+'</div><div class="profile-company">'+p.company+'</div></div><button class="btn btn-secondary btn-block" onclick="openProfileSetup()" style="margin-bottom:20px">Edit Profile</button><div class="section-title" style="font-size:15px"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>Certifications</div><div id="certList">'+(certHtml||'<p style="text-align:center;color:var(--text3);padding:16px;font-size:13px">No certifications added</p>')+'</div><button class="btn btn-secondary btn-block" onclick="addCertModal()" style="margin-top:8px">+ Add Certification</button>'}
 
-    <script>
-    const state = {
-        users: JSON.parse(localStorage.getItem('registeredUsers') || '[]'),
-        checkedIn: JSON.parse(localStorage.getItem('checkedInUsers') || '[]'),
-        settings: JSON.parse(localStorage.getItem('siqSettings') || '{}'),
-    };
-    let profileStream = null, capturedPhotoData = null;
+function openProfileSetup(){capturedPhoto=S.profile?S.profile.photo:null;var p=S.profile||{};var opts=['Driller','Derrickhand','Floorhand','Motorhand','Company Man','Tool Pusher','Rig Manager','Safety Coordinator','Wireline Operator','Coiled Tubing Operator','Frac Supervisor','MWD/LWD','Mud Engineer','Cementer','Consultant','Visitor','Other'];var optHtml='<option value="">Select...</option>';opts.forEach(function(r){optHtml+='<option'+(p.position===r?' selected':'')+'>'+r+'</option>'});
+document.getElementById('modalBody').innerHTML='<h3>'+(p.name?'Edit':'Create')+' Profile</h3><div class="cam-box"><div class="cam-ph" id="profPh">'+(capturedPhoto?'<img src="'+capturedPhoto+'" style="width:100%;height:100%;object-fit:cover">':'<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Profile photo</span>')+'</div><video id="profileVideo" autoplay playsinline style="display:none"></video><img id="capturedPhoto" style="display:none;width:100%;height:100%;object-fit:cover"><div class="cam-ctrls" id="camCtrls" style="display:none"><button class="cam-snap" onclick="snapPhoto()"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10"/></svg></button></div></div><button class="btn btn-secondary btn-block" onclick="startProfCam()" id="profCamBtn" style="margin-bottom:14px">📷 '+(capturedPhoto?'Retake':'Take')+' Photo</button><div class="form-row"><div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-input" id="pName" value="'+(p.name||'')+'" placeholder="John Smith"></div><div class="form-group"><label class="form-label">Company *</label><input type="text" class="form-input" id="pCompany" value="'+(p.company||'')+'" placeholder="Halliburton"></div></div><div class="form-group"><label class="form-label">Position *</label><select class="form-select" id="pPosition">'+optHtml+'</select></div><div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" style="flex:1" onclick="saveProfile()">Save Profile</button></div>';openModal()}
 
-    function init() { applySettings(); updateStatusCount(); }
+function saveProfile(){var n=document.getElementById('pName').value.trim(),c=document.getElementById('pCompany').value.trim(),p=document.getElementById('pPosition').value;if(!n||!c||!p){showToast('Fill all fields','error');return}S.profile={name:n,company:c,position:p,photo:capturedPhoto};save('profile');closeModal();renderProfile();showToast('Profile saved!')}
+async function startProfCam(){try{profileStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});var v=document.getElementById('profileVideo');v.srcObject=profileStream;v.style.display='block';document.getElementById('profPh').style.display='none';document.getElementById('camCtrls').style.display='flex';document.getElementById('profCamBtn').style.display='none';var ex=document.getElementById('capturedPhoto');if(ex)ex.style.display='none'}catch(e){showToast('Camera unavailable','error')}}
+function snapPhoto(){var v=document.getElementById('profileVideo'),c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);capturedPhoto=c.toDataURL('image/jpeg');document.getElementById('capturedPhoto').src=capturedPhoto;document.getElementById('capturedPhoto').style.display='block';v.style.display='none';document.getElementById('camCtrls').innerHTML='<button class="cam-snap" onclick="retakeProfPhoto()" style="background:var(--warning)">↻</button>';if(profileStream)profileStream.getTracks().forEach(function(t){t.stop()})}
+function retakeProfPhoto(){capturedPhoto=null;document.getElementById('capturedPhoto').style.display='none';document.getElementById('profCamBtn').style.display='block';document.getElementById('camCtrls').style.display='none';document.getElementById('profPh').style.display='flex'}
+function addCertModal(){document.getElementById('modalBody').innerHTML='<h3>Add Certification</h3><div class="form-group"><label class="form-label">Certification *</label><select class="form-select" id="certName"><option value="">Select...</option><option>SafeLand/RigPass</option><option>H2S Alive</option><option>PEC Basic</option><option>PEC Core</option><option>First Aid/CPR</option><option>OSHA 10</option><option>OSHA 30</option><option>Fall Protection</option><option>Confined Space</option><option>Hazwoper 40hr</option><option>Crane Operator</option><option>CDL</option><option>Well Control (IADC)</option><option>Forklift</option><option>Other</option></select></div><div class="form-group"><label class="form-label">Expiration Date *</label><input type="date" class="form-input" id="certExp"></div><div class="form-group"><label class="form-label">Upload Certificate (optional)</label><input type="file" class="form-input" accept="image/*,.pdf" style="padding:10px"></div><div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" style="flex:1" onclick="saveCert()">Add</button></div>';openModal()}
+function saveCert(){var name=document.getElementById('certName').value,exp=document.getElementById('certExp').value;if(!name||!exp){showToast('Fill required fields','error');return}S.certs.push({name:name,expiry:exp,addedAt:new Date().toISOString()});save('certs');closeModal();renderProfile();showToast('Certification added!')}
 
-    function applySettings() {
-        const s = state.settings;
-        if (s.wellName) document.getElementById('wellNameDisplay').textContent = s.wellName;
-        if (s.wellLocation) document.getElementById('wellLocationDisplay').textContent = s.wellLocation;
-    }
+// ANALYTICS PAGE
+function renderAnalytics(){var el=document.getElementById('analyticsContent');
+if(!S.meetings.length){el.innerHTML='<div class="section-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Past JSA Records</div><div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p>No JSA records yet. Hold a meeting to get started.</p></div>';return}
+var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var items='';
+var rev=S.meetings.slice().reverse();
+rev.forEach(function(m,i){var d=new Date(m.startTime);var covered=m.coveredCount||0;var total=m.totalHazards||1;var pct=Math.round(covered/total*100);var cls=pct>=80?'good':pct>=50?'ok':'bad';var realIdx=S.meetings.length-1-i;items+='<div class="jsa-item" onclick="viewJSA('+realIdx+')"><div class="jsa-date"><span class="jsa-day">'+d.getDate()+'</span>'+months[d.getMonth()]+'</div><div class="jsa-info" style="flex:1"><div class="jsa-scope">'+(m.jobScope||'Meeting')+'</div><div class="jsa-meta">'+(m.well||'-')+' · '+(m.transcript?m.transcript.length:0)+' entries</div></div><span class="jsa-pct '+cls+'">'+pct+'%</span><div class="jsa-arrow"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div></div>'});
+el.innerHTML='<div class="section-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Past JSA Records</div><div class="jsa-list">'+items+'</div>'}
 
-    function updateStatusCount() {
-        document.getElementById('checkedInCount').textContent = state.checkedIn.filter(c => !c.checkoutTime).length;
-    }
+function viewJSA(idx){var m=S.meetings[idx];if(!m)return;var d=new Date(m.startTime);var hzHtml='';(m.hazards||[]).forEach(function(h){hzHtml+='<div class="hazard-row"><div class="hz-dot '+h.status+'">'+(h.status==='covered'?'✓':'✗')+'</div><span style="flex:1">'+h.name+'</span><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;'+(h.status==='covered'?'background:rgba(0,212,170,.15);color:var(--accent)':'background:rgba(230,57,70,.15);color:var(--danger)')+'">'+h.status.toUpperCase()+'</span></div>'});
+var tHtml='';(m.transcript||[]).forEach(function(t){tHtml+='<div class="t-entry"><div class="t-time">'+t.time+'</div><div class="t-text">'+t.text+'</div></div>'});
+document.getElementById('jsaDetailContent').innerHTML='<button class="detail-back" onclick="switchPage(\'pageAnalytics\')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg> Back</button><div class="section-title">'+(m.jobScope||'Meeting')+'</div><p style="font-size:13px;color:var(--text2);margin-bottom:16px">'+(m.well||'')+' · '+d.toLocaleDateString()+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+'</p><div class="card"><div class="card-head"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg><h3>Hazard Coverage</h3></div>'+hzHtml+'</div>'+(m.aiSummary?'<div class="card"><div class="card-head"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg><h3>AI Analysis</h3></div><div class="ai-result">'+formatMD(m.aiSummary)+'</div></div>':'<div class="card" style="text-align:center;color:var(--text3);padding:30px"><p>No AI analysis for this meeting.</p>'+(S.settings.apiKey?'<button class="btn btn-primary" onclick="reanalyze('+idx+')" style="margin-top:12px">Run AI Analysis</button>':'<p style="font-size:11px;margin-top:8px">Add Gemini API key in Settings</p>')+'</div>')+(tHtml?'<div class="card"><div class="card-head"><h3>Transcript ('+(m.transcript?m.transcript.length:0)+')</h3></div><div style="max-height:300px;overflow-y:auto">'+tHtml+'</div></div>':'');
+showPage('pageJSADetail')}
+// JSA RECORDER
+async function startRecording(){var scope=document.getElementById('mScope').value;if(!scope){showToast('Select a job scope','error');return}rec.info={well:S.checkedIn?S.checkedIn.siteName:'',jobScope:scope,notes:document.getElementById('mNotes').value.trim(),startTime:new Date().toISOString()};rec.transcript=[];rec.alerts=[];rec.hazards=getHazards(scope);rec.snapshot=null;rec.active=true;rec.paused=false;rec.startTime=Date.now();document.getElementById('tabbar').classList.remove('show');renderRecorder();showPage('pageRecorder');rec.timerInt=setInterval(updateRecTimer,1000);await startRecCam();startSpeechRec();if(S.settings.apiKey)rec.autoInt=setInterval(function(){if(!rec.paused)autoAI()},60000);showToast('Recording started!')}
+function getHazards(scope){var c=['PPE Requirements','Emergency Procedures','Stop Work Authority','Communication Plan'];var m={'Pre-Job Safety Meeting':['Pinch Points','Overhead Hazards','Line of Fire','Weather Conditions'],'Daily Safety Meeting':['Slip/Trip/Fall','Housekeeping','Fatigue Management'],'Tailgate Meeting':['Task-Specific Hazards','Equipment Inspection','Environmental Conditions'],'JSA Review':['Step-by-Step Hazard ID','Risk Mitigation Controls','Residual Risk Assessment','Energy Isolation / LOTO'],'Emergency Drill':['Muster Points','Head Count','H2S Response','Wind Direction','Medical Emergency'],'Workover Operations':['Well Control','Pressure Management','H2S Monitoring','Rigging & Lifting','Confined Space'],'Plug & Abandon':['Cement Displacement','Well Integrity','Chemical Handling','Environmental Containment'],'Well Intervention':['Well Control Barriers','Wireline / CT Hazards','Pressure Testing','SimOps']};var list=c.concat(m[scope]||[]);return list.map(function(n){return{name:n,status:'pending'}})}
+function renderRecorder(){var el=document.getElementById('recorderContent');el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px"><div><div style="font-size:16px;font-weight:700">'+rec.info.jobScope+'</div><div style="font-size:12px;color:var(--text2)">'+rec.info.well+'</div></div><div class="rec-indicator" id="recInd"><div class="rec-dot"></div><span id="recTimer">00:00</span></div></div><div class="vid-card"><div class="vid-card-head"><h3><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>Video</h3><span style="font-size:10px;color:var(--text3);font-family:JetBrains Mono,monospace" id="resLabel">--</span></div><div class="vid-body" id="vidBody"><div class="ph" id="vidPh"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg><span>Initializing...</span></div><video id="recVid" autoplay playsinline muted style="display:none"></video>'+(S.settings.apiKey?'<div class="ai-badge-ov" id="aiBadge" style="display:none"><div class="dot"></div>Gemini AI</div>':'')+'</div><div class="waveform" id="waveBox"></div><div class="rec-controls"><button class="rc-btn" onclick="togglePause()" id="pauseBtn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"/></svg>Pause</button><button class="rc-btn" onclick="snapRec()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>Snap</button><button class="rc-btn" onclick="runAI()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>AI</button><button class="rc-btn stop" onclick="stopRec()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="6" y="6" width="12" height="12" rx="1" stroke-width="2"/></svg>End</button></div></div><div class="vid-card"><div class="vid-card-head"><h3><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Transcript</h3><span style="font-size:10px;color:var(--text3)" id="tStatus">Waiting...</span></div><div class="transcript-body" id="tBody"><div id="tEmpty" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">Transcript appears as people speak</div></div></div><div class="vid-card"><div class="vid-card-head" style="background:linear-gradient(135deg,rgba(0,212,170,.04),rgba(0,163,255,.04))"><h3 style="color:var(--accent)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg> AI Analysis</h3><span style="font-size:10px;color:var(--text3)" id="aiStat">Standby</span></div><div style="padding:14px 16px"><div class="ai-tab-row"><button class="ai-tab active" onclick="swTab(\'hazards\',this)">Hazards</button><button class="ai-tab" onclick="swTab(\'alerts\',this)">Alerts</button><button class="ai-tab" onclick="swTab(\'aisummary\',this)">Summary</button></div><div class="ai-tc active" id="tab-hazards"><div id="hzList"></div></div><div class="ai-tc" id="tab-alerts"><div class="alert-feed" id="alertFeed"><div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">No alerts yet</div></div></div><div class="ai-tc" id="tab-aisummary"><div id="aiBox" style="text-align:center;padding:24px;color:var(--text3);font-size:12px">Click AI button or end meeting for summary</div></div></div></div>';initWave();renderHz();if(S.settings.apiKey){var b=document.getElementById('aiBadge');if(b)b.style.display='flex'}}
+function initWave(){var b=document.getElementById('waveBox');if(!b)return;b.innerHTML='';for(var i=0;i<44;i++){var d=document.createElement('div');d.className='wb';d.style.height='3px';b.appendChild(d)}}
+function renderHz(){var el=document.getElementById('hzList');if(!el)return;var h='';rec.hazards.forEach(function(hz){var st=hz.status;h+='<div class="hz-item"><div class="hz-check '+st+'">'+(st==='covered'?'✓':st==='missed'?'✗':'○')+'</div><span style="flex:1">'+hz.name+'</span><span style="font-size:9px;font-weight:600;padding:2px 6px;border-radius:3px;'+(st==='covered'?'background:rgba(0,212,170,.15);color:var(--accent)':st==='missed'?'background:rgba(230,57,70,.15);color:var(--danger)':'background:rgba(90,114,153,.15);color:var(--text3)')+'">'+st.toUpperCase()+'</span></div>'});el.innerHTML=h}
+async function startRecCam(){try{rec.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},audio:true});var v=document.getElementById('recVid');v.srcObject=rec.stream;v.style.display='block';document.getElementById('vidPh').style.display='none';var vt=rec.stream.getVideoTracks()[0];if(vt){var s=vt.getSettings();var rl=document.getElementById('resLabel');if(rl)rl.textContent=(s.width||'?')+'x'+(s.height||'?')}setupAudio(rec.stream);try{rec.mediaRec=new MediaRecorder(rec.stream,{mimeType:'video/webm;codecs=vp9,opus'})}catch(e){try{rec.mediaRec=new MediaRecorder(rec.stream)}catch(e2){}}if(rec.mediaRec){rec.chunks=[];rec.mediaRec.ondataavailable=function(e){if(e.data.size>0)rec.chunks.push(e.data)};rec.mediaRec.start(1000)}}catch(e){document.getElementById('vidPh').innerHTML='<span style="color:var(--warning)">Camera unavailable</span>';try{rec.stream=await navigator.mediaDevices.getUserMedia({audio:true});setupAudio(rec.stream)}catch(e2){}}}
+function setupAudio(s){try{rec.audioCtx=new(window.AudioContext||window.webkitAudioContext)();var src=rec.audioCtx.createMediaStreamSource(s);rec.analyser=rec.audioCtx.createAnalyser();rec.analyser.fftSize=128;src.connect(rec.analyser);animWave()}catch(e){}}
+function animWave(){if(!rec.active||!rec.analyser)return;var d=new Uint8Array(rec.analyser.frequencyBinCount);rec.analyser.getByteFrequencyData(d);var bars=document.querySelectorAll('.wb');var step=Math.floor(d.length/bars.length);bars.forEach(function(b,i){var v=d[i*step]||0;b.style.height=rec.paused?'3px':Math.max(3,v/255*36)+'px';b.style.background=v>200?'var(--warning)':v>100?'var(--accent)':'var(--text3)'});requestAnimationFrame(animWave)}
+function updateRecTimer(){if(!rec.active||rec.paused)return;var e=Date.now()-rec.startTime;var s=Math.floor(e/1000)%60,m=Math.floor(e/60000)%60,h=Math.floor(e/3600000);document.getElementById('recTimer').textContent=h>0?String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'):String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function togglePause(){rec.paused=!rec.paused;var b=document.getElementById('pauseBtn'),ind=document.getElementById('recInd');if(rec.paused){b.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>Resume';ind.classList.add('paused');if(rec.mediaRec&&rec.mediaRec.state==='recording')rec.mediaRec.pause();if(rec.speechRec)try{rec.speechRec.stop()}catch(e){}}else{b.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6"/></svg>Pause';ind.classList.remove('paused');if(rec.mediaRec&&rec.mediaRec.state==='paused')rec.mediaRec.resume();startSpeechRec()}}
+function snapRec(){var v=document.getElementById('recVid');if(!v||v.style.display==='none'){showToast('No video','error');return}var c=document.createElement('canvas');c.width=v.videoWidth||640;c.height=v.videoHeight||480;c.getContext('2d').drawImage(v,0,0);rec.snapshot=c.toDataURL('image/jpeg',0.8);showToast('Snapshot!','info')}
+function stopRec(){rec.active=false;clearInterval(rec.timerInt);clearInterval(rec.autoInt);if(rec.mediaRec&&rec.mediaRec.state!=='inactive')rec.mediaRec.stop();if(rec.speechRec)try{rec.speechRec.stop()}catch(e){}if(rec.stream)rec.stream.getTracks().forEach(function(t){t.stop()});if(rec.audioCtx)rec.audioCtx.close().catch(function(){});rec.hazards.forEach(function(h,i){if(h.status==='pending')rec.hazards[i].status='missed'});var meeting={well:rec.info.well,jobScope:rec.info.jobScope,notes:rec.info.notes,startTime:rec.info.startTime,endTime:new Date().toISOString(),transcript:rec.transcript,hazards:rec.hazards,alerts:rec.alerts,coveredCount:rec.hazards.filter(function(h){return h.status==='covered'}).length,totalHazards:rec.hazards.length,aiSummary:null};S.meetings.push(meeting);save('meetings');if(S.settings.apiKey&&rec.transcript.length){callGemini(meeting).then(function(txt){if(txt){S.meetings[S.meetings.length-1].aiSummary=txt;save('meetings')}})}document.getElementById('tabbar').classList.add('show');showToast('Meeting saved!');switchPage('pageMeeting')}
+// SPEECH + HAZARD MATCHING
+function startSpeechRec(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){var s=document.getElementById('tStatus');if(s)s.textContent='Not supported';return}var r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-US';r.onstart=function(){var s=document.getElementById('tStatus');if(s)s.textContent='Listening...'};r.onresult=function(e){var f='';for(var i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript}if(f.trim()){addT(f.trim());checkHz(f.trim())}};r.onerror=function(e){if(e.error!=='no-speech'&&e.error!=='aborted'&&rec.active&&!rec.paused)setTimeout(startSpeechRec,1000)};r.onend=function(){if(rec.active&&!rec.paused)setTimeout(startSpeechRec,300)};try{r.start();rec.speechRec=r}catch(e){}}
+function addT(text){var em=document.getElementById('tEmpty');if(em)em.remove();var e=Date.now()-(rec.startTime||Date.now());var m=Math.floor(e/60000),s=Math.floor((e%60000)/1000);var ts=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');rec.transcript.push({text:text,time:ts,timestamp:new Date().toISOString()});var b=document.getElementById('tBody');var d=document.createElement('div');d.className='t-entry';d.innerHTML='<div class="t-speaker">Speaker</div><div class="t-text">'+text+'</div><div class="t-time">'+ts+'</div>';b.appendChild(d);b.scrollTop=b.scrollHeight}
+var HZ_KW={'PPE Requirements':['ppe','hard hat','safety glasses','gloves','steel toe','fr clothing','protective equipment'],'Emergency Procedures':['emergency','evacuation','muster','alarm','911','first aid','fire extinguisher'],'Stop Work Authority':['stop work','swa','stop the job','unsafe'],'Communication Plan':['communication','radio','channel','phone','contact','supervisor'],'Pinch Points':['pinch point','caught between','crushing'],'Overhead Hazards':['overhead','falling object','crane','rigging','suspended load'],'Line of Fire':['line of fire','swing radius','struck by'],'Weather Conditions':['weather','wind','lightning','rain','ice','heat','storm'],'Slip/Trip/Fall':['slip','trip','fall','wet surface','ladder'],'Housekeeping':['housekeeping','clean up','clutter','debris'],'Fatigue Management':['fatigue','tired','rest','hours worked','sleep','break'],'Task-Specific Hazards':['task hazard','specific hazard','job step'],'Equipment Inspection':['inspect','pre-use','check equipment','defect'],'Environmental Conditions':['spill','containment','berm','wind direction'],'Step-by-Step Hazard ID':['step by step','hazard identification','each step'],'Risk Mitigation Controls':['mitigation','control','barrier','safeguard','reduce risk'],'Residual Risk Assessment':['residual risk','risk level','risk matrix'],'Energy Isolation / LOTO':['lockout','tagout','loto','zero energy','de-energize'],'Muster Points':['muster','assembly','rally point'],'Head Count':['head count','roll call','account for'],'H2S Response':['h2s','hydrogen sulfide','sour gas','ppm'],'Wind Direction':['wind direction','wind sock','upwind','downwind'],'Medical Emergency':['medical','medic','hospital','ambulance','cpr','injury'],'Well Control':['well control','kick','bop','blowout','shut in'],'Pressure Management':['pressure','psi','gauge','relief valve'],'H2S Monitoring':['h2s monitor','gas detection','calibration'],'Rigging & Lifting':['rigging','lifting','sling','shackle','load chart','tag line'],'Confined Space':['confined space','entry permit','atmosphere'],'Cement Displacement':['cement','displacement','plug','squeeze'],'Well Integrity':['well integrity','casing','tubing','annular'],'Chemical Handling':['chemical','sds','hazmat','corrosive'],'Environmental Containment':['containment','spill prevention','bermed','drip pan'],'Well Control Barriers':['primary barrier','secondary barrier','well barrier'],'Wireline / CT Hazards':['wireline','coiled tubing','grease head'],'Pressure Testing':['pressure test','leak test','integrity test'],'SimOps':['simops','simultaneous','concurrent']};
+function checkHz(text){var l=text.toLowerCase();rec.hazards.forEach(function(h,i){if(h.status==='covered')return;var kw=HZ_KW[h.name]||[h.name.toLowerCase()];if(kw.some(function(k){return l.indexOf(k)!==-1})){rec.hazards[i].status='covered';renderHz();addAlert('info','Hazard Covered','"'+h.name+'" discussed','✓')}})}
+function addAlert(type,title,desc,icon){var f=document.getElementById('alertFeed');if(f&&!rec.alerts.length)f.innerHTML='';rec.alerts.push({type:type,title:title,desc:desc});var d=document.createElement('div');d.className='alert-item '+type;d.innerHTML='<span style="font-size:14px;flex-shrink:0">'+(icon||(type==='danger'?'⚠️':type==='warning'?'⚡':'ℹ️'))+'</span><div style="flex:1"><div style="font-weight:600;margin-bottom:1px">'+title+'</div><div style="color:var(--text2);font-size:10px">'+desc+'</div></div>';if(f)f.insertBefore(d,f.firstChild)}
+function swTab(name,btn){document.querySelectorAll('.ai-tab').forEach(function(b){b.classList.remove('active')});document.querySelectorAll('.ai-tc').forEach(function(c){c.classList.remove('active')});btn.classList.add('active');document.getElementById('tab-'+name).classList.add('active')}
 
-    // === LEVEL UP ===
-    function showLevelUp(type, name) {
-        const o = document.getElementById('levelupOverlay');
-        const icon = document.getElementById('levelupIcon');
-        const svg = document.getElementById('levelupSvg');
-        const text = document.getElementById('levelupText');
-        const now = new Date();
-        const t = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+// GEMINI AI
+async function runAI(){if(!S.settings.apiKey){showToast('Set Gemini API key in Settings','error');return}if(!rec.transcript.length&&!rec.snapshot){showToast('Need data first','error');return}snapRec();showToast('Analyzing...','info');var txt=await callGemini({well:rec.info.well,jobScope:rec.info.jobScope,transcript:rec.transcript,hazards:rec.hazards});if(txt){document.getElementById('aiBox').innerHTML='<div class="ai-result" style="text-align:left">'+formatMD(txt)+'</div>';document.getElementById('aiStat').textContent='Done';var l=txt.toLowerCase();if(l.indexOf('inattentive')!==-1||l.indexOf('distracted')!==-1||l.indexOf('drowsy')!==-1)addAlert('warning','Behavioral Concern','AI detected inattention','👁️');if(l.indexOf('defensive')!==-1||l.indexOf('crossed arms')!==-1)addAlert('warning','Defensive Posture','AI noted defensive body language','🛡️');swTab('aisummary',document.querySelectorAll('.ai-tab')[2])}}
+async function autoAI(){var v=document.getElementById('recVid');if(v&&v.style.display!=='none'){var c=document.createElement('canvas');c.width=v.videoWidth||640;c.height=v.videoHeight||480;c.getContext('2d').drawImage(v,0,0);rec.snapshot=c.toDataURL('image/jpeg',0.6)}if(!rec.transcript.length||!S.settings.apiKey)return;try{var last=rec.transcript.slice(-5).map(function(t){return t.text}).join(' ');var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+S.settings.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Analyze for behavioral red flags (confusion,drowsiness,inattention,defensiveness). JSON only: {"flags":[],"ok":true/false}. Transcript: "'+last+'"'}]}],generationConfig:{temperature:0.1,maxOutputTokens:256}})});var d=await r.json();if(d.candidates&&d.candidates[0]){var t=d.candidates[0].content.parts[0].text.replace(/```json\n?|```/g,'').trim();try{var res=JSON.parse(t);if(!res.ok&&res.flags)res.flags.forEach(function(f){addAlert('warning','AI Detection',f,'🤖')})}catch(e){}}}catch(e){}}
+async function reanalyze(idx){var m=S.meetings[idx];if(!m||!S.settings.apiKey)return;showToast('Analyzing...','info');var txt=await callGemini(m);if(txt){S.meetings[idx].aiSummary=txt;save('meetings');viewJSA(idx);showToast('Done!')}}
+async function callGemini(m){var tTxt=(m.transcript||[]).map(function(t){return'['+t.time+'] '+t.text}).join('\n');var hzTxt=(m.hazards||[]).map(function(h){return h.name+': '+h.status}).join('\n');var prompt='You are SafetyIQ, an AI safety analyst for oilfield operations. Analyze this safety meeting.\n\nMEETING: '+m.jobScope+' at '+(m.well||'Unknown')+'\n\nTRANSCRIPT:\n'+(tTxt||'(none)')+'\n\nHAZARD STATUS:\n'+hzTxt+'\n\nProvide:\n## Safety Meeting Assessment\n### Overall Rating\nEXCELLENT/GOOD/NEEDS IMPROVEMENT/POOR\n### Hazard Coverage\n### Behavioral Observations\n### Recommendations\n### Top 3 Risks\n\nBe concise.';var parts=[{text:prompt}];if(rec.snapshot)parts.push({inline_data:{mime_type:'image/jpeg',data:rec.snapshot.split(',')[1]}});try{var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+S.settings.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:parts}],generationConfig:{temperature:0.3,maxOutputTokens:2048}})});var d=await r.json();if(d.candidates&&d.candidates[0]&&d.candidates[0].content)return d.candidates[0].content.parts.map(function(p){return p.text}).join('');return null}catch(e){return null}}
+function formatMD(t){return t.replace(/### (.+)/g,'<h4 style="color:var(--text1);margin:14px 0 6px;font-size:13px">$1</h4>').replace(/## (.+)/g,'<h4 style="color:var(--accent);margin:14px 0 8px;font-size:15px">$1</h4>').replace(/\*\*(.+?)\*\*/g,'<strong style="color:var(--text1)">$1</strong>').replace(/- (.+)/g,'<div style="padding:2px 0 2px 14px;position:relative"><span style="position:absolute;left:3px">•</span>$1</div>').replace(/\n/g,'<br>')}
 
-        if (type === 'checkin') {
-            icon.className = 'levelup-icon ci';
-            svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
-            text.className = 'levelup-text ci'; text.textContent = 'CHECKED IN';
-            spawnParticles('#00D4AA');
-        } else {
-            icon.className = 'levelup-icon co';
-            svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7"/>';
-            text.className = 'levelup-text co'; text.textContent = 'CHECKED OUT';
-            spawnParticles('#FF6B35');
-        }
-        document.getElementById('levelupName').textContent = name;
-        document.getElementById('levelupTime').textContent = t;
+// SETTINGS
+function openSettings(){var s=S.settings;document.getElementById('modalBody').innerHTML='<h3>Settings</h3><div class="settings-section"><h4>Well Information</h4><div class="form-group"><label class="form-label">Default Well / Site</label><input type="text" class="form-input" id="sWell" value="'+(s.wellName||'')+'" placeholder="Justin SWD #1"></div><div class="form-group"><label class="form-label">Operator</label><input type="text" class="form-input" id="sOp" value="'+(s.operator||'ExxonMobil')+'"></div></div><div class="settings-section"><h4>AI Configuration</h4><div class="form-group"><label class="form-label">Gemini API Key</label><input type="password" class="form-input" id="sKey" value="'+(s.apiKey||'')+'" placeholder="For AI analysis"><p style="font-size:10px;color:var(--text3);margin-top:4px">Free at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com</a></p></div></div><div class="settings-section"><h4>Data</h4><div style="display:flex;gap:10px"><button class="btn btn-secondary" onclick="exportAll()">📥 Export</button><button class="btn btn-danger" onclick="clearAll()">🗑️ Clear</button></div></div><div style="display:flex;gap:10px;margin-top:14px"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" style="flex:1" onclick="saveSett()">Save</button></div>';openModal()}
+function saveSett(){S.settings={wellName:document.getElementById('sWell').value.trim(),operator:document.getElementById('sOp').value.trim(),apiKey:document.getElementById('sKey').value.trim()};save('settings');closeModal();showToast('Saved!')}
+function clearAll(){if(confirm('Clear ALL data?')){localStorage.clear();location.reload()}}
+function exportAll(){var d={profile:S.profile,meetings:S.meetings,certs:S.certs,settings:S.settings};var b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='safetyiq-'+new Date().toISOString().split('T')[0]+'.json';a.click();showToast('Exported!')}
 
-        o.classList.remove('float-up'); o.classList.add('active');
-        setTimeout(() => o.classList.add('float-up'), 1800);
-        setTimeout(() => o.classList.remove('active', 'float-up'), 3200);
-    }
+// DEV BYPASS
+function devBypass(){if(!S.profile){S.profile={name:'Jonathan Barber',company:'JB Consulting',position:'Consultant',photo:null};save('profile')}if(!S.certs.length){S.certs=[{name:'SafeLand/RigPass',expiry:'2026-08-15',addedAt:new Date().toISOString()},{name:'H2S Alive',expiry:'2025-12-01',addedAt:new Date().toISOString()},{name:'First Aid/CPR',expiry:'2026-03-20',addedAt:new Date().toISOString()}];save('certs')}S.checkedIn={siteName:'Justin SWD #1',coords:null,time:new Date().toISOString()};save('checkedin');enterCheckedIn();showToast('Dev mode active')}
 
-    function spawnParticles(color) {
-        const o = document.getElementById('levelupOverlay');
-        for (let i = 0; i < 24; i++) {
-            const p = document.createElement('div');
-            p.className = 'particle';
-            const a = (Math.PI * 2 / 24) * i + (Math.random() - 0.5) * 0.5;
-            const d = 80 + Math.random() * 180;
-            const s = 3 + Math.random() * 5;
-            p.style.cssText = `width:${s}px;height:${s}px;background:${color};left:50%;top:50%;transform:translate(-50%,-50%);opacity:1;transition:all ${0.5+Math.random()*0.6}s cubic-bezier(0.16,1,0.3,1);box-shadow:0 0 ${s*2}px ${color};`;
-            o.appendChild(p);
-            requestAnimationFrame(() => {
-                p.style.transform = `translate(calc(-50% + ${Math.cos(a)*d}px), calc(-50% + ${Math.sin(a)*d}px))`;
-                p.style.opacity = '0';
-            });
-            setTimeout(() => p.remove(), 1500);
-        }
-    }
+// MODAL + TOAST
+function openModal(){document.getElementById('modalBg').classList.add('active')}
+function closeModal(){document.getElementById('modalBg').classList.remove('active');if(profileStream){profileStream.getTracks().forEach(function(t){t.stop()});profileStream=null}}
+document.getElementById('modalBg').addEventListener('click',function(e){if(e.target===this)closeModal()});
+function showToast(msg,type){var t=document.createElement('div');t.className='toast '+(type||'success');t.textContent=msg;document.getElementById('toastBox').appendChild(t);setTimeout(function(){t.remove()},3000)}
 
-    // === CHECK IN ===
-    function showCheckIn() {
-        if (!state.users.length) { showToast('No crew registered yet. Use settings or dev bypass to add crew.', 'error'); return; }
-        const avail = state.users.filter(u => !state.checkedIn.find(c => c.user.id === u.id && !c.checkoutTime));
-        if (!avail.length) { showToast('Everyone is already checked in!', 'error'); return; }
-        document.getElementById('modalBody').innerHTML = `
-            <h3>Check In</h3>
-            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">Select who is arriving on location</p>
-            <div class="user-select-list">${avail.map(u => `
-                <div class="user-select-item" onclick="doCheckIn('${u.id}')">
-                    <div class="attendee-avatar">${u.photo ? `<img src="${u.photo}">` : u.name.charAt(0)}</div>
-                    <div><div class="attendee-name">${u.name}</div><div class="attendee-role">${u.position} — ${u.company}</div></div>
-                </div>`).join('')}
-            </div>
-            <div style="margin-top:16px;"><button class="btn btn-secondary btn-block" onclick="closeModal()">Cancel</button></div>`;
-        openModal();
-    }
-
-    function doCheckIn(id) {
-        const u = state.users.find(x => x.id === id); if (!u) return;
-        state.checkedIn.push({ user: u, checkinTime: new Date().toISOString(), checkoutTime: null });
-        localStorage.setItem('checkedInUsers', JSON.stringify(state.checkedIn));
-        closeModal(); updateStatusCount(); showLevelUp('checkin', u.name);
-    }
-
-    // === CHECK OUT ===
-    function showCheckOut() {
-        const on = state.checkedIn.filter(c => !c.checkoutTime);
-        if (!on.length) { showToast('No one is currently checked in.', 'error'); return; }
-        document.getElementById('modalBody').innerHTML = `
-            <h3>Check Out</h3>
-            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">Select who is leaving location</p>
-            <div class="user-select-list">${on.map((c,i) => `
-                <div class="user-select-item" onclick="doCheckOut(${i})">
-                    <div class="attendee-avatar">${c.user.photo ? `<img src="${c.user.photo}">` : c.user.name.charAt(0)}</div>
-                    <div><div class="attendee-name">${c.user.name}</div><div class="attendee-role">${c.user.position} — ${c.user.company}</div>
-                    <div class="attendee-time">In since ${new Date(c.checkinTime).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</div></div>
-                </div>`).join('')}
-            </div>
-            <div style="margin-top:16px;"><button class="btn btn-secondary btn-block" onclick="closeModal()">Cancel</button></div>`;
-        openModal();
-    }
-
-    function doCheckOut(idx) {
-        const on = state.checkedIn.filter(c => !c.checkoutTime);
-        const rec = on[idx]; if (!rec) return;
-        const mi = state.checkedIn.indexOf(rec);
-        if (mi >= 0) state.checkedIn[mi].checkoutTime = new Date().toISOString();
-        localStorage.setItem('checkedInUsers', JSON.stringify(state.checkedIn));
-        closeModal(); updateStatusCount(); showLevelUp('checkout', rec.user.name);
-    }
-
-    // === HOLD MEETING ===
-    function holdMeeting() {
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('mainApp').classList.add('active');
-        const s = state.settings;
-        if (s.wellName) document.getElementById('wellInput').value = s.wellName;
-        if (s.wellLocation) document.getElementById('locationInput').value = s.wellLocation;
-        renderAttendees();
-    }
-
-    function backToLogin() {
-        document.getElementById('mainApp').classList.remove('active');
-        document.getElementById('loginScreen').classList.remove('hidden');
-        updateStatusCount();
-    }
-
-    // === NEW USER ===
-    function showVisitorSignIn() {
-        capturedPhotoData = null;
-        document.getElementById('modalBody').innerHTML = `
-            <h3>Visitor Check In</h3>
-            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">For guests and visitors — core crew should use Check In with their ID</p>
-            <div class="camera-container" id="profileCameraContainer">
-                <div class="camera-placeholder" id="profilePlaceholder">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:48px;height:48px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>Take photo (optional)</span>
-                </div>
-                <video id="profileVideo" autoplay playsinline style="display:none;"></video>
-                <img id="capturedPhoto" style="display:none;width:100%;height:100%;object-fit:cover;">
-                <div class="camera-controls" id="cameraControls" style="display:none;">
-                    <button class="camera-btn" onclick="capturePhoto()"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10"/></svg></button>
-                </div>
-            </div>
-            <button class="btn btn-secondary btn-block" onclick="startProfileCamera()" id="startCameraBtn">📷 Start Camera</button>
-            <div style="margin-top:20px;">
-                <div class="form-row">
-                    <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-input" id="visitorName" placeholder="John Smith"></div>
-                    <div class="form-group"><label class="form-label">Company *</label><input type="text" class="form-input" id="visitorCompany" placeholder="Halliburton"></div>
-                </div>
-                <div class="form-group"><label class="form-label">Purpose of Visit *</label>
-                    <select class="form-select" id="visitorPurpose">
-                        <option value="">Select purpose...</option>
-                        <option value="Delivery">Delivery</option>
-                        <option value="Inspection">Inspection</option>
-                        <option value="Regulatory Visit">Regulatory Visit</option>
-                        <option value="Vendor Service">Vendor Service</option>
-                        <option value="Consulting">Consulting</option>
-                        <option value="Training">Training</option>
-                        <option value="Management Visit">Management Visit</option>
-                        <option value="Contractor">Contractor</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:16px;">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" style="flex:1;" onclick="registerVisitor()">Check In Visitor</button>
-            </div>`;
-        openModal();
-    }
-
-    function registerVisitor() {
-        const n = document.getElementById('visitorName').value.trim();
-        const c = document.getElementById('visitorCompany').value.trim();
-        const p = document.getElementById('visitorPurpose').value;
-        if (!n || !c || !p) { showToast('Fill in all required fields', 'error'); return; }
-        const id = 'visitor_' + Date.now();
-        const visitor = { id, name: n, company: c, position: 'Visitor — ' + p, photo: capturedPhotoData, isVisitor: true, registeredAt: new Date().toISOString() };
-        // Add to checked-in directly (visitors auto check in)
-        state.checkedIn.push({ user: visitor, checkinTime: new Date().toISOString(), checkoutTime: null });
-        localStorage.setItem('checkedInUsers', JSON.stringify(state.checkedIn));
-        closeModal(); updateStatusCount(); showLevelUp('checkin', n);
-    }
-
-    async function startProfileCamera() {
-        try {
-            profileStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-            const v = document.getElementById('profileVideo'); v.srcObject = profileStream; v.style.display = 'block';
-            document.getElementById('profilePlaceholder').style.display = 'none';
-            document.getElementById('cameraControls').style.display = 'flex';
-            document.getElementById('startCameraBtn').style.display = 'none';
-        } catch(e) { showToast('Unable to access camera', 'error'); }
-    }
-
-    function capturePhoto() {
-        const v = document.getElementById('profileVideo');
-        const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
-        c.getContext('2d').drawImage(v, 0, 0);
-        capturedPhotoData = c.toDataURL('image/jpeg');
-        document.getElementById('capturedPhoto').src = capturedPhotoData;
-        document.getElementById('capturedPhoto').style.display = 'block';
-        v.style.display = 'none';
-        document.getElementById('cameraControls').innerHTML = '<button class="camera-btn" onclick="retakePhoto()" style="background:var(--warning);">↻</button>';
-        if (profileStream) profileStream.getTracks().forEach(t => t.stop());
-    }
-
-    function retakePhoto() {
-        capturedPhotoData = null;
-        document.getElementById('capturedPhoto').style.display = 'none';
-        document.getElementById('startCameraBtn').style.display = 'block';
-        document.getElementById('cameraControls').style.display = 'none';
-        document.getElementById('profilePlaceholder').style.display = 'flex';
-    }
-
-    function showUserQRCode(u) {
-        document.getElementById('modalBody').innerHTML = `
-            <div class="qr-display"><h3 style="margin-bottom:20px;">Save Your QR Badge</h3>
-            <div class="qr-code" id="userQRCode"></div>
-            <p style="color:var(--text-secondary);font-size:14px;margin-top:12px;"><strong>${u.name}</strong><br>${u.position} — ${u.company}<br><br>Screenshot this QR code for future sign-ins!</p></div>
-            <button class="btn btn-primary btn-block" onclick="closeModal()">Got It</button>`;
-        openModal();
-        if (typeof QRCode !== 'undefined') new QRCode(document.getElementById('userQRCode'), { text: u.qrCode, width: 168, height: 168, colorDark: '#0A1628', colorLight: '#ffffff' });
-    }
-
-    // === DEV BYPASS ===
-    function devBypass() {
-        if (!state.users.length) {
-            state.users = [
-                { id:'dev_1', name:'Jonathan Barber', company:'JB Consulting', position:'Consultant', photo:null, qrCode:'dev_1', registeredAt:new Date().toISOString() },
-                { id:'dev_2', name:'Mike Henderson', company:'ExxonMobil', position:'Company Man', photo:null, qrCode:'dev_2', registeredAt:new Date().toISOString() },
-                { id:'dev_3', name:'Jake Williams', company:'Halliburton', position:'Driller', photo:null, qrCode:'dev_3', registeredAt:new Date().toISOString() },
-            ];
-            localStorage.setItem('registeredUsers', JSON.stringify(state.users));
-            showToast('Dev: 3 test users added');
-        }
-        holdMeeting();
-    }
-
-    // === DASHBOARD ===
-    function renderAttendees() {
-        const g = document.getElementById('attendeesGrid');
-        const on = state.checkedIn.filter(c => !c.checkoutTime);
-        g.innerHTML = on.map(c => `
-            <div class="attendee-card">
-                <div class="attendee-avatar">${c.user.photo ? `<img src="${c.user.photo}">` : c.user.name.charAt(0)}</div>
-                <div><div class="attendee-name">${c.user.name}</div><div class="attendee-role">${c.user.position} — ${c.user.company}</div><span class="attendee-status in">ON LOCATION</span></div>
-            </div>`).join('') + `<div class="attendee-card attendee-add" onclick="openSignInModal()"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Add Attendee</div>`;
-        document.getElementById('attendeeCount').textContent = on.length;
-    }
-
-    function openSignInModal() {
-        document.getElementById('modalBody').innerHTML = `
-            <h3>Add Attendee</h3>
-            <div class="signin-options">
-                <div class="signin-option" onclick="showQRSignIn()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg><h4>Scan QR</h4><p>Returning user</p></div>
-                <div class="signin-option" onclick="closeModal();showVisitorSignIn();"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1zm13-8h4m-2-2v4"/></svg><h4>Visitor</h4><p>Guest check in</p></div>
-            </div>
-            <div class="divider">or select crew member</div>
-            <div class="user-select-list">${state.users.map(u => `
-                <div class="user-select-item" onclick="quickAddAttendee('${u.id}')">
-                    <div class="attendee-avatar">${u.photo ? `<img src="${u.photo}">` : u.name.charAt(0)}</div>
-                    <div><div class="attendee-name">${u.name}</div><div class="attendee-role">${u.position} — ${u.company}</div></div>
-                </div>`).join('')}${!state.users.length ? '<p style="text-align:center;color:var(--text-muted);padding:20px;">No crew members registered</p>' : ''}
-            </div>
-            <div style="margin-top:16px;"><button class="btn btn-secondary btn-block" onclick="closeModal()">Cancel</button></div>`;
-        openModal();
-    }
-
-    function quickAddAttendee(id) {
-        const u = state.users.find(x => x.id === id); if (!u) return;
-        if (state.checkedIn.find(c => c.user.id === id && !c.checkoutTime)) { showToast('Already on location', 'error'); return; }
-        state.checkedIn.push({ user: u, checkinTime: new Date().toISOString(), checkoutTime: null });
-        localStorage.setItem('checkedInUsers', JSON.stringify(state.checkedIn));
-        closeModal(); renderAttendees(); updateStatusCount(); showToast(u.name + ' added');
-    }
-
-    function showQRSignIn() {
-        document.getElementById('modalBody').innerHTML = `
-            <h3>Scan QR Badge</h3>
-            <div class="camera-container"><div class="camera-placeholder" id="qrPlaceholder"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:48px;height:48px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg><span>Camera initializing...</span></div><video id="qrVideo" autoplay playsinline style="display:none;"></video></div>
-            <p style="text-align:center;color:var(--text-secondary);font-size:13px;">Position QR badge in front of camera</p>
-            <div class="divider">or upload QR image</div>
-            <input type="file" class="form-input" accept="image/*" onchange="handleQRUpload(event)" style="padding:12px;">
-            <div style="margin-top:16px;"><button class="btn btn-secondary btn-block" onclick="closeModal()">Cancel</button></div>`;
-        openModal();
-        initQRCamera();
-    }
-
-    async function initQRCamera() {
-        try {
-            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            const v = document.getElementById('qrVideo');
-            if (v) { v.srcObject = s; v.style.display = 'block'; document.getElementById('qrPlaceholder').style.display = 'none'; }
-        } catch(e) { const p = document.getElementById('qrPlaceholder'); if (p) p.innerHTML = '<span>Camera not available. Use file upload.</span>'; }
-    }
-
-    function handleQRUpload(e) {
-        if (e.target.files[0]) {
-            showToast('QR detected! Looking up...');
-            setTimeout(() => { if (state.users.length) quickAddAttendee(state.users[0].id); else showToast('User not found.', 'error'); }, 1000);
-        }
-    }
-
-    async function startMeeting() {
-        const w = document.getElementById('wellInput').value.trim();
-        const l = document.getElementById('locationInput').value.trim();
-        const j = document.getElementById('jobScopeSelect').value;
-        if (!w || !l || !j) { showToast('Please fill in well, location, and job scope', 'error'); return; }
-        showToast('Meeting recording started!');
-    }
-
-    // === SETTINGS ===
-    function openSettings() {
-        const s = state.settings;
-        document.getElementById('modalBody').innerHTML = `
-            <h3>Settings</h3>
-            <div class="settings-section"><h4>Crew Management</h4>
-                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Core crew members who check in/out with IDs. Visitors use the Visitor button.</p>
-                <div id="crewList" style="margin-bottom:12px;">${state.users.map((u,i) => `
-                    <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface-elevated);border-radius:6px;margin-bottom:6px;">
-                        <div style="width:30px;height:30px;border-radius:50%;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;">${u.name.charAt(0)}</div>
-                        <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${u.name}</div><div style="font-size:11px;color:var(--text-secondary);">${u.position} — ${u.company}</div></div>
-                        <button onclick="removeCrew(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;">✕</button>
-                    </div>`).join('')}${!state.users.length ? '<p style="text-align:center;color:var(--text-muted);padding:12px;">No crew added yet</p>' : ''}</div>
-                <button class="btn btn-secondary btn-block" onclick="closeModal();showAddCrewModal();">+ Add Crew Member</button>
-            </div>
-            <div class="settings-section"><h4>Well Information</h4>
-                <div class="form-row">
-                    <div class="form-group"><label class="form-label">Well / Site Name</label><input type="text" class="form-input" id="settWellName" value="${s.wellName||'Justin SWD #1'}"></div>
-                    <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="settWellLocation" value="${s.wellLocation||'McKenzie County, ND'}"></div>
-                </div>
-                <div class="form-group"><label class="form-label">Operator</label><input type="text" class="form-input" id="settOperator" value="${s.operator||'ExxonMobil'}"></div>
-            </div>
-            <div class="settings-section"><h4>API Keys</h4>
-                <div class="form-group"><label class="form-label">Gemini API Key</label><input type="password" class="form-input" id="settApiKey" value="${s.apiKey||''}" placeholder="For AI analysis"></div>
-            </div>
-            <div class="settings-section"><h4>Data Management</h4>
-                <div style="display:flex;gap:12px;">
-                    <button class="btn btn-secondary" onclick="exportData()">📥 Export</button>
-                    <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All</button>
-                </div>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:16px;">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" style="flex:1;" onclick="saveSettings()">Save</button>
-            </div>`;
-        openModal();
-    }
-
-    function showAddCrewModal() {
-        capturedPhotoData = null;
-        document.getElementById('modalBody').innerHTML = `
-            <h3>Add Crew Member</h3>
-            <div class="camera-container" id="profileCameraContainer">
-                <div class="camera-placeholder" id="profilePlaceholder">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:48px;height:48px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>Take ID photo</span>
-                </div>
-                <video id="profileVideo" autoplay playsinline style="display:none;"></video>
-                <img id="capturedPhoto" style="display:none;width:100%;height:100%;object-fit:cover;">
-                <div class="camera-controls" id="cameraControls" style="display:none;">
-                    <button class="camera-btn" onclick="capturePhoto()"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10"/></svg></button>
-                </div>
-            </div>
-            <button class="btn btn-secondary btn-block" onclick="startProfileCamera()" id="startCameraBtn">📷 Start Camera</button>
-            <div style="margin-top:20px;">
-                <div class="form-row">
-                    <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-input" id="crewName" placeholder="John Smith"></div>
-                    <div class="form-group"><label class="form-label">Company *</label><input type="text" class="form-input" id="crewCompany" placeholder="Halliburton"></div>
-                </div>
-                <div class="form-group"><label class="form-label">Position / Role *</label>
-                    <select class="form-select" id="crewPosition">
-                        <option value="">Select position...</option>
-                        <option value="Driller">Driller</option><option value="Derrickhand">Derrickhand</option>
-                        <option value="Floorhand">Floorhand</option><option value="Motorhand">Motorhand</option>
-                        <option value="Company Man">Company Man</option><option value="Tool Pusher">Tool Pusher</option>
-                        <option value="Rig Manager">Rig Manager</option><option value="Safety Coordinator">Safety Coordinator</option>
-                        <option value="Wireline Operator">Wireline Operator</option><option value="Coiled Tubing Operator">Coiled Tubing Operator</option>
-                        <option value="Frac Supervisor">Frac Supervisor</option><option value="MWD/LWD">MWD/LWD</option>
-                        <option value="Mud Engineer">Mud Engineer</option><option value="Cementer">Cementer</option>
-                        <option value="Consultant">Consultant</option><option value="Other">Other</option>
-                    </select>
-                </div>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:16px;">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" style="flex:1;" onclick="addCrewMember()">Add & Generate QR</button>
-            </div>`;
-        openModal();
-    }
-
-    function addCrewMember() {
-        const n = document.getElementById('crewName').value.trim();
-        const c = document.getElementById('crewCompany').value.trim();
-        const p = document.getElementById('crewPosition').value;
-        if (!n || !c || !p) { showToast('Fill in all required fields', 'error'); return; }
-        const id = 'crew_' + Date.now();
-        const u = { id, name: n, company: c, position: p, photo: capturedPhotoData, qrCode: id, registeredAt: new Date().toISOString() };
-        state.users.push(u); localStorage.setItem('registeredUsers', JSON.stringify(state.users));
-        closeModal(); showToast(n + ' added to crew!'); showUserQRCode(u);
-    }
-
-    function removeCrew(idx) {
-        if (!confirm('Remove ' + state.users[idx].name + ' from crew?')) return;
-        state.users.splice(idx, 1);
-        localStorage.setItem('registeredUsers', JSON.stringify(state.users));
-        closeModal(); openSettings(); showToast('Crew member removed');
-    }
-
-    function saveSettings() {
-        state.settings = { wellName: document.getElementById('settWellName').value.trim(), wellLocation: document.getElementById('settWellLocation').value.trim(), operator: document.getElementById('settOperator').value.trim(), apiKey: document.getElementById('settApiKey').value.trim() };
-        localStorage.setItem('siqSettings', JSON.stringify(state.settings));
-        applySettings(); closeModal(); showToast('Settings saved!');
-    }
-
-    function clearAllData() {
-        if (confirm('Clear ALL data?')) {
-            localStorage.clear(); state.users=[]; state.checkedIn=[]; state.settings={};
-            updateStatusCount(); applySettings(); closeModal(); showToast('All data cleared');
-        }
-    }
-
-    function exportData() {
-        const d = { users: state.users, checkedIn: state.checkedIn, settings: state.settings, exportedAt: new Date().toISOString() };
-        const b = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-        a.download = `safetyiq-${new Date().toISOString().split('T')[0]}.json`; a.click();
-        showToast('Data exported!');
-    }
-
-    // === MODAL ===
-    function openModal() { document.getElementById('modalOverlay').classList.add('active'); }
-    function closeModal() {
-        document.getElementById('modalOverlay').classList.remove('active');
-        if (profileStream) { profileStream.getTracks().forEach(t => t.stop()); profileStream = null; }
-        const q = document.getElementById('qrVideo'); if (q && q.srcObject) q.srcObject.getTracks().forEach(t => t.stop());
-    }
-    document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-
-    // === TOAST ===
-    function showToast(msg, type='success') {
-        const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
-        document.getElementById('toastContainer').appendChild(t);
-        setTimeout(() => t.remove(), 3000);
-    }
-
-    init();
-    </script>
+init();
+</script>
 </body>
 </html>
